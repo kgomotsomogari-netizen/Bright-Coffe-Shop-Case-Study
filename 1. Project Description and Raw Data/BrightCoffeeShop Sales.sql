@@ -1055,4 +1055,129 @@ GROUP BY store_location
 ORDER BY Average_Revenue_Per_Transaction DESC;
 
 -- Results Interpretation: The analysis shows that Lower Manhattan recorded the highest average revenue per transaction (4.81), followed by Hell's Kitchen (4.66) and Astoria (4.59). Although Lower Manhattan generated the lowest total revenue overall, customers at this location spent slightly more on average per transaction than customers at the other stores. These findings suggest that while Hell's Kitchen generated the highest overall revenue due to a larger number of transactions, Lower Manhattan achieved the highest average transaction value, indicating stronger customer spending per  purchase. Management can use these insights to compare customer purchasing behaviour across locations, identify successful sales strategies and implement best practices across all stores to increase average customer spending and  overall revenue.
+
+-- ===============================================================
+-- SECTION 7 – CREATE BUSINESS-READY DATASET
+-- ===============================================================
+--
+-- Objective: Consolidate all data transformations completed in this notebook into one final business-ready dataset that can be exported to  Excel for pivot tables, charts and dashboard creation.
+--
+-- This dataset includes:
+-- • Original transaction fields
+-- • Cleaned unit price
+-- • Total revenue per transaction
+-- • Month, day and quarter fields
+-- • Sales period and time bucket fields
+-- • Weekend / weekday classification
+-- • Price category
+-- • Transaction size category
+--
+-- Business Value: Creating a business-ready dataset ensures that the Excel dashboard can be built without additional cleaning or manual calculations. This improves reporting accuracy and allows the analysis to focus on insights rather than data preparation
+
 -- ==========================================================
+-- Query 7.1 – Create Final Business-Ready Dataset
+-- ==========================================================
+--
+-- Purpose: Create a final dataset containing all cleaned, transformed and business-ready fields required for Excel dashboarding.
+--
+-- Functions Used:
+-- CREATE OR REPLACE TABLE
+-- CAST()
+-- REPLACE()
+-- DATE_FORMAT()
+-- MONTH()
+-- YEAR()
+-- QUARTER()
+-- HOUR()
+-- CASE WHEN
+--
+-- Business Value: This final table prepares the dataset for dashboard creation by ensuring that all required reporting fields already exist. The user will not need to perform additional manipulation in Excel before creating pivot tables and visualisations.
+-- ==========================================================
+
+CREATE OR REPLACE TABLE sales_business_ready AS
+
+SELECT
+
+    -- Original transaction fields
+    transaction_id,
+    transaction_date,
+    transaction_time,
+    transaction_qty,
+    store_id,
+    store_location,
+    product_id,
+    product_category,
+    product_type,
+    product_detail,
+
+    -- Cleaned unit price
+    CAST(REPLACE(unit_price, ',', '.') AS DECIMAL(10,2)) AS unit_price,
+
+    -- Revenue calculation
+    ROUND(
+        transaction_qty * CAST(REPLACE(unit_price, ',', '.') AS DECIMAL(10,2)),
+        2
+    ) AS total_amount,
+
+    -- Date intelligence fields
+    YEAR(transaction_date) AS transaction_year,
+    MONTH(transaction_date) AS month_number,
+    DATE_FORMAT(transaction_date, 'MMMM') AS month_name,
+    DATE_FORMAT(transaction_date, 'EEEE') AS day_of_week,
+    QUARTER(transaction_date) AS quarter_number,
+
+    CONCAT('Q', QUARTER(transaction_date)) AS quarter_name,
+
+    -- Weekend / weekday classification
+    CASE
+        WHEN DATE_FORMAT(transaction_date, 'EEEE') IN ('Saturday', 'Sunday')
+        THEN 'Weekend'
+        ELSE 'Weekday'
+    END AS weekend_weekday,
+
+    -- Sales period classification
+    CASE
+        WHEN HOUR(transaction_time) BETWEEN 6 AND 11 THEN 'Morning'
+        WHEN HOUR(transaction_time) BETWEEN 12 AND 17 THEN 'Afternoon'
+        ELSE 'Evening'
+    END AS sales_period,
+
+    -- 3-hour transaction time bucket
+    CASE
+        WHEN HOUR(transaction_time) BETWEEN 0 AND 2 THEN '00:00 - 02:59'
+        WHEN HOUR(transaction_time) BETWEEN 3 AND 5 THEN '03:00 - 05:59'
+        WHEN HOUR(transaction_time) BETWEEN 6 AND 8 THEN '06:00 - 08:59'
+        WHEN HOUR(transaction_time) BETWEEN 9 AND 11 THEN '09:00 - 11:59'
+        WHEN HOUR(transaction_time) BETWEEN 12 AND 14 THEN '12:00 - 14:59'
+        WHEN HOUR(transaction_time) BETWEEN 15 AND 17 THEN '15:00 - 17:59'
+        WHEN HOUR(transaction_time) BETWEEN 18 AND 20 THEN '18:00 - 20:59'
+        ELSE '21:00 - 23:59'
+    END AS transaction_time_bucket,
+
+    -- Price category
+    CASE
+        WHEN CAST(REPLACE(unit_price, ',', '.') AS DECIMAL(10,2)) < 3 THEN 'Budget'
+        WHEN CAST(REPLACE(unit_price, ',', '.') AS DECIMAL(10,2)) BETWEEN 3 AND 5 THEN 'Standard'
+        ELSE 'Premium'
+    END AS price_category,
+
+    -- Transaction size classification
+    CASE
+        WHEN transaction_qty * CAST(REPLACE(unit_price, ',', '.') AS DECIMAL(10,2)) < 5 THEN 'Small Transaction'
+        WHEN transaction_qty * CAST(REPLACE(unit_price, ',', '.') AS DECIMAL(10,2)) BETWEEN 5 AND 10 THEN 'Medium Transaction'
+        ELSE 'Large Transaction'
+    END AS transaction_size
+
+FROM sales;
+----Perfoming data validation checks to ensure that no data was lost
+SELECT *
+FROM sales_business_ready
+LIMIT 20;
+
+----Perfoming data validation checks to ensure that no data was lost
+SELECT COUNT(*)
+FROM sales_business_ready;
+
+---Obtaining the full dataset table
+SELECT *
+FROM sales_business_ready;
