@@ -10,7 +10,7 @@ USE brightcoffeshop.coffee_sales
 
 --Display the uploaded dataset to verify that the CSV was sucessfully imported into Databricks. It will assist me by providing me with an initial understanding of the data structure before performing validation.
 SELECT *
-FROM sales;
+FROM brightcoffeshop.default.sales;
 
 -- ====================================================================================================================
 ---------------------------------------------------3. Data Profiling
@@ -46,7 +46,7 @@ FROM sales;
 -- Confirms that the CSV file was uploaded successfully and establishes the size of the dataset before analysis.
 
 SELECT COUNT(*) AS Total_Records
-FROM sales; 
+FROM brightcoffeshop.default.sales; 
 
 -- The dataset contains 149,116 transaction records. This confirms that the CSV file was successfully uploaded into Databricks and provides a sufficiently large dataset for meaningful sales analysis.
 
@@ -66,7 +66,7 @@ FROM sales;
 -- Business Value:
 -- Understanding the table structure helps identify, whether any columns require data type conversion, before cleaning and transformation.
 
-DESCRIBE sales;
+DESCRIBE brightcoffeshop.default.sales;
 
 -- Results Interpretation of the query: The table contains 11 columns, Most numeric identifier and quantity fields were loaded as bigint, transaction_date was correctly loaded as a date. The transaction_time was loaded as a timestamp, th e unit_price was loaded as a string and will need to be cleaned and converted to a decimal data type before revenue calculations.
 
@@ -87,7 +87,7 @@ DESCRIBE sales;
 
 SELECT
     COUNT(DISTINCT product_category) AS Total_Product_Categories
-FROM sales;
+FROM brightcoffeshop.default.sales;
 
 -- Results Interpretation: The dataset contains 9 unique product categories. This indicates that the coffee shop offers a diverse range of products across multiple categories.
 
@@ -109,7 +109,7 @@ FROM sales;
 
 SELECT DISTINCT
        product_category
-FROM sales
+FROM brightcoffeshop.default.sales
 ORDER BY product_category ASC;
 
 -- Results Interpretation: The coffee shop sells products across nine distinct product categories, including beverages, food items and retail products. The dataset includes categories such as Coffee, Tea, Bakery, Coffee Beans and Drinking Chocolate, indicating a diverse product offering. Understanding the available product categories will assist in analysing revenue contribution and sales performance for each category during the CEO analysis.
@@ -131,7 +131,7 @@ ORDER BY product_category ASC;
 
 SELECT
     COUNT(DISTINCT product_type) AS Total_Product_Types
-FROM sales;
+FROM brightcoffeshop.default.sales;
 
 -- Results Interpretation: The dataset contains 29 unique product types.This indicates that the coffee shop offers a wide variety of products within its nine product categories. Product type analysis will provide more detailed nsights into customer purchasing behaviour and will support the identification of high-performing and low-performing product groups during the CEO analysis.
 
@@ -155,7 +155,7 @@ FROM sales;
 
 SELECT DISTINCT
        product_type
-FROM sales
+FROM brightcoffeshop.default.sales
 ORDER BY product_type ASC;
 
 -- Results Interpretation: The dataset contains 29 unique product types that span multiple beverage, food and retail product offerings. The product portfolio includes coffee beverages, tea beverages, bakery items, chocolate products,  coffee beans and branded merchandise. This diverse product mix provides an opportunity to analyse customer purchasing behaviour at a much more detailed level than product categories alone. Product type analysis will later be used to identify the highest and lowest revenue generating products.
@@ -178,7 +178,7 @@ ORDER BY product_type ASC;
 
 SELECT
     COUNT(DISTINCT store_location) AS Total_Store_Locations
-FROM sales;
+FROM brightcoffeshop.default.sales;
 
 -- Results Interpretation: The dataset contains sales transactions from three unique store locations. Having multiple store locations enables comparative sales analysis to identify which branches generate the highest revenue, sell the most products and perform best overall. Store performance analysis will later assist management in identifying best practices and opportunities for operational improvement.
 
@@ -201,7 +201,7 @@ FROM sales;
 
 SELECT DISTINCT
        store_location
-FROM sales
+FROM brightcoffeshop.default.sales
 ORDER BY store_location ASC;
 
 -- Results Interpretation: The coffee shop operates from three unique store
@@ -232,7 +232,7 @@ ORDER BY store_location ASC;
 SELECT
     MIN(transaction_date) AS Earliest_Transaction_Date,
     MAX(transaction_date) AS Latest_Transaction_Date
-FROM sales;
+FROM brightcoffeshop.default.sales;
 
 -- Results Interpretation: The dataset covers a six-month reporting period, from 01 January 2023 to 30 June 2023. This reporting period provides sufficient historical data to analyse sales trends, customer purchasing behaviour and store performance. All revenue, product and store analysis performed during this project will be based on this six-month period.
 
@@ -260,7 +260,7 @@ SELECT
     MIN(transaction_qty) AS Minimum_Quantity,
     MAX(transaction_qty) AS Maximum_Quantity,
     ROUND(AVG(transaction_qty),2) AS Average_Quantity
-FROM sales;
+FROM brightcoffeshop.default.sales;
 
 -- Results Interpretation: Customers purchase an average of 1.44 items per transaction, indicating that most transactions consist of one or two products. The minimum quantity purchased is one item, while the maximum quantity purchased in a single transaction is eight items. These results suggest that customer purchases are generally small, presenting an opportunity for the business to increase basket size through promotions and product bundling.
 
@@ -280,7 +280,7 @@ FROM sales;
 SELECT
 product_category,
 COUNT(*) AS Total_Transactions
-FROM sales
+FROM brightcoffeshop.default.sales
 GROUP BY product_category
 ORDER BY Total_Transactions DESC;
 
@@ -343,7 +343,7 @@ SUM(CASE WHEN product_detail IS NULL THEN 1 ELSE 0 END) AS Missing_Product_Detai
 
 SUM(CASE WHEN unit_price IS NULL THEN 1 ELSE 0 END) AS Missing_Unit_Price
 
-FROM sales;
+FROM brightcoffeshop.default.sales;
 
 -- Results Interpretation: No missing (NULL) values were identified across any of the key columns in the coffee shop sales dataset. This indicates that the dataset is complete and contains all the required information for data cleaning, transformation and business analysis. Since there are no missing values, no imputation or removal of records is required during the cleaning phase. The dataset is suitable to proceed to the next validation check.
 
@@ -368,7 +368,7 @@ SELECT
     COUNT(*) AS Total_Records,
     COUNT(DISTINCT transaction_id) AS Unique_Transaction_IDs,
     COUNT(*) - COUNT(DISTINCT transaction_id) AS Duplicate_Transaction_IDs
-FROM sales;
+FROM brightcoffeshop.default.sales;
 
 -- Results Interpretation: The total number of records matches the total number of unique transaction IDs. This confirms that there are no duplicate transaction records within the dataset. The absence of duplicate transaction IDs improves the reliability of revenue calculations, transaction counts and customer purchasing analysis. No duplicate records require removal during the data cleaning phase.
 
@@ -394,7 +394,7 @@ FROM sales;
 
 SELECT
     COUNT(*) AS Invalid_Transaction_Quantities
-FROM sales
+FROM brightcoffeshop.default.sales
 WHERE transaction_qty <= 0;
 
 -- Results Interpretation: There are no invalid transaction quantities were identified. All recorded transactions contain quantities greater than zero, indicating that every transaction represents a valid customer purchase. This confirms that the transaction quantity field is suitable for sales calculations and inventory analysis. No corrective action is required during the data cleaning phase.
@@ -425,7 +425,7 @@ WHERE transaction_qty <= 0;
 
 SELECT
     COUNT(*) AS Invalid_Unit_Prices
-FROM sales
+FROM brightcoffeshop.default.sales
 WHERE CAST(REPLACE(unit_price, ',', '.') AS DECIMAL(10,2)) <= 0;
 
 -- Results Interpretation: There are no invalid unit prices were identified within the dataset. All products have positive selling prices, confirming that the pricing information is suitable for revenue calculations and financial analysis. Since no invalid prices were detected, no corrective action is required during the data cleaning phase.
@@ -449,7 +449,7 @@ WHERE CAST(REPLACE(unit_price, ',', '.') AS DECIMAL(10,2)) <= 0;
 
 SELECT
     COUNT(*) AS Blank_Product_Categories
-FROM sales
+FROM brightcoffeshop.default.sales
 WHERE TRIM(product_category) = '';
 
 -- Results Interpretation: There are no blank product category values were identified in the dataset. Every transaction has been assigned to a valid product category, ensuring complete category-level reporting and accurate sales analysis. No data cleaning is required for the product category field.
@@ -474,7 +474,7 @@ WHERE TRIM(product_category) = '';
 
 SELECT
     COUNT(*) AS Blank_Product_Types
-FROM sales
+FROM brightcoffeshop.default.sales
 WHERE TRIM(product_type) = '';
 
 -- Results Interpretation: There are no blank product type values were identified in the dataset. Every transaction has been assigned to a valid product types, ensuring complete category-level reporting and accurate sales analysis. No data cleaning is required for the product category field.
@@ -498,7 +498,7 @@ WHERE TRIM(product_type) = '';
 
 SELECT
     COUNT(*) AS Blank_Store_Locations
-FROM sales
+FROM brightcoffeshop.default.sales
 WHERE TRIM(store_location) = '';
 
 -- Results Interpretation: There are no blank store locations values that were identified in the dataset. Every transaction has been assigned to a valid location, ensuring complete category-level reporting and accurate sales analysis. No data cleaning is required for the product category field.
@@ -793,7 +793,7 @@ transaction_qty *
 CAST(REPLACE(unit_price, ',', '.') AS DECIMAL(10,2))
 ),2) AS Total_Revenue
 
-FROM sales;
+FROM brightcoffeshop.default.sales;
 
 -- Results Interpretation: The coffee shop generated a total revenue of 698,812.33 during the reporting period. This metric provides management with an overall view of business performance and serves as a baseline for further analysis of revenue by product category, store location, sales period and time. The calculated revenue will also be used to compare the contribution of different products and stores in the subsequent analysis.
 
@@ -1012,7 +1012,7 @@ CAST(REPLACE(unit_price,',','.') AS DECIMAL(10,2))
 
 ,2) AS Average_Transaction_Value
 
-FROM sales;
+FROM brightcoffeshop.default.sales;
 
 -- Results Interpretation: The analysis shows that the average transaction value is 4.69. This indicates that, on average, each customer transaction generated 4.69 in revenue during the reporting period. This metric provides valuable insight into customer spending behaviour and serves as a benchmark for measuring future business performance. Management can use the average transaction value to evaluate the effectiveness of pricing strategies, promotional campaigns and upselling initiatives. Increasing this value over time would indicate that customers are purchasing higher-value products or buying more items per transaction, ultimately contributing to increased revenue and business growth.
 
@@ -1168,7 +1168,7 @@ SELECT
         ELSE 'Large Transaction'
     END AS transaction_size
 
-FROM sales;
+FROM brightcoffeshop.default.sales;
 ----Perfoming data validation checks to ensure that no data was lost
 SELECT *
 FROM sales_business_ready
@@ -1178,6 +1178,10 @@ LIMIT 20;
 SELECT COUNT(*)
 FROM sales_business_ready;
 
----Obtaining the full dataset table
+SELECT *
+FROM sales_business_ready;
+
+-- COMMAND ----------
+
 SELECT *
 FROM sales_business_ready;
